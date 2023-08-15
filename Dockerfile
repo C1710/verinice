@@ -1,5 +1,5 @@
 FROM eclipse-temurin:11 as build
-COPY . /verinice
+RUN mkdir /verinice
 WORKDIR /verinice
 
 RUN apt-get update && apt-get install -y \
@@ -23,6 +23,8 @@ RUN curl -SL https://github.com/adoptium/temurin11-binaries/releases/download/jd
 	&& rm /verinice/jre_windows.zip
 	&& mv /verinice/sernet.verinice.extraresources.jre_windows_64/jdk-*-jre /verinice/sernet.verinice.extraresources.jre_windows_64/jre \
 	&& cp -R /verinice/sernet.verinice.extraresources.jre_windows_64/jre /verinice/sernet.verinice.extraresources.feature/windows
+
+COPY . /verinice
 
 RUN ./mvnw -Djdk.util.zip.disableZip64ExtraFieldValidation -Dtycho.disableP2Mirrors=true  clean verify
 
