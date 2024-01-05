@@ -20,7 +20,7 @@ RUN curl -SL https://github.com/adoptium/temurin11-binaries/releases/download/jd
 
 RUN curl -SL https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20%2B8/OpenJDK11U-jre_x64_windows_hotspot_11.0.20_8.zip > /verinice/jre_windows.zip \
 	&& unzip /verinice/jre_windows.zip -d /verinice/sernet.verinice.extraresources.jre_windows_64 \
-	&& rm /verinice/jre_windows.zip
+	&& rm /verinice/jre_windows.zip \
 	&& mv /verinice/sernet.verinice.extraresources.jre_windows_64/jdk-*-jre /verinice/sernet.verinice.extraresources.jre_windows_64/jre \
 	&& cp -R /verinice/sernet.verinice.extraresources.jre_windows_64/jre /verinice/sernet.verinice.extraresources.feature/windows
 
