@@ -10,10 +10,9 @@ pipeline {
     environment {
         // In case the build server exports a custom JAVA_HOME, we fix the JAVA_HOME
         // to the one used by the docker image.
-        JAVA_HOME='/usr/lib/jvm/java-11-openjdk'
+        JAVA_HOME='/usr/lib/jvm/java-17-openjdk'
     }
     parameters {
-        string(name: 'jreversion', defaultValue: 'jdk-11.0.19+7', description: 'Download and pack a JRE with this version. See https://adoptopenjdk.net/archive.html for a list of possible versions.', trim: true)
         booleanParam(name: 'runIntegrationTests', defaultValue: true, description: 'Run integration tests')
         booleanParam(name: 'runRCPTTTests', defaultValue: true, description: 'Run RCPTT tests')
         booleanParam(name: 'clientSign', defaultValue: false, description: 'Sign verinice clients')
@@ -49,18 +48,13 @@ pipeline {
                             error("Target platform uses repositories on bob: $repositoriesOnBob")
                         }
                     }
-                    def httpRepositories = repositoryLocations.findAll{it =~ /http:/}.findAll{!(it =~ '^http://bob\\.')}
+                    def httpRepositories = repositoryLocations.findAll{it =~ /http:/}.findAll{!(it =~ '^http://bob(-2023)?\\.')}
                     if (!httpRepositories.isEmpty()){
                         error("Target platform uses non-HTTPS repositories: $httpRepositories")
                     }
                 }
                 buildDescription "${env.GIT_BRANCH} ${env.GIT_COMMIT[0..8]}"
                 sh "./verinice-distribution/build.sh QUALIFIER=${qualifier} clean"
-            }
-        }
-        stage('Fetch JREs') {
-            steps {
-                sh "./verinice-distribution/build.sh QUALIFIER=${qualifier} JREVERSION=${params.jreversion} -j4 jres"
             }
         }
         stage('Build') {

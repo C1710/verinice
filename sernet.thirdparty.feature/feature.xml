@@ -2,7 +2,7 @@
 <feature
       id="sernet.thirdparty.feature"
       label="Thirdparty Feature"
-      version="1.26.1.qualifier">
+      version="1.27.0.qualifier">
 
    <description url="http://www.example.com/description">
       [Enter Feature Description here.]
@@ -87,14 +87,14 @@
          unpack="false"/>
 
    <plugin
-         id="org.apache.lucene.analyzers-common"
+         id="org.apache.lucene.analysis-common"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="org.apache.lucene.analyzers-smartcn"
+         id="org.apache.lucene.analysis-smartcn"
          download-size="0"
          install-size="0"
          version="0.0.0"

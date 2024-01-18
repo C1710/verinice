@@ -52,7 +52,6 @@ import sernet.springclient.RightsServiceClient;
 import sernet.verinice.interfaces.ActionRightIDs;
 import sernet.verinice.interfaces.CommandException;
 import sernet.verinice.interfaces.ICommandService;
-import sernet.verinice.interfaces.RightEnabledUserInteraction;
 import sernet.verinice.iso27k.rcp.action.DropPerformer;
 import sernet.verinice.iso27k.rcp.action.MetaDropAdapter;
 import sernet.verinice.model.bp.elements.Application;
@@ -66,6 +65,7 @@ import sernet.verinice.model.bp.elements.Room;
 import sernet.verinice.model.common.CnATreeElement;
 import sernet.verinice.rcp.InfoDialogWithShowToggle;
 import sernet.verinice.rcp.Preferences;
+import sernet.verinice.rcp.RightEnabledUserInteraction;
 import sernet.verinice.rcp.catalog.CatalogDragListener;
 import sernet.verinice.service.bp.exceptions.BpModelingException;
 import sernet.verinice.service.commands.bp.ModelCommand;
@@ -290,17 +290,6 @@ public class BbModelingDropPerformer implements DropPerformer, RightEnabledUserI
     @Override
     public boolean isActive() {
         return isActive;
-    }
-
-    /*
-     * @see sernet.verinice.interfaces.RightEnabledUserInteraction#checkRights()
-     */
-    @Override
-    public boolean checkRights() {
-        Activator.inheritVeriniceContextState();
-        RightsServiceClient service = (RightsServiceClient) VeriniceContext
-                .get(VeriniceContext.RIGHTS_SERVICE);
-        return service.isEnabled(getRightID());
     }
 
     /*

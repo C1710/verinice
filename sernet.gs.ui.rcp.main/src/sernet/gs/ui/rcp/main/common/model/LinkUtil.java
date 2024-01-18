@@ -20,9 +20,10 @@
 
 package sernet.gs.ui.rcp.main.common.model;
 
-import java.util.EnumSet;
-import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
@@ -31,8 +32,9 @@ import sernet.verinice.interfaces.ICommandService;
 import sernet.verinice.model.common.CnALink;
 import sernet.verinice.model.common.CnATreeElement;
 import sernet.verinice.model.common.Domain;
+import sernet.verinice.model.common.Link;
 import sernet.verinice.service.commands.CnATypeMapper;
-import sernet.verinice.service.commands.CreateLink;
+import sernet.verinice.service.commands.CreateMultipleLinks;
 
 /**
  * Utility class for creating Links (CnALink). Could get expanded to allow more
@@ -50,50 +52,57 @@ public final class LinkUtil {
     private LinkUtil() {
     }
 
-    public static CnALink createLink(CnATreeElement source, CnATreeElement target,
-            String relationId) {
-        CreateLink<CnATreeElement, CnATreeElement> command = new CreateLink<>(source, target,
-                relationId, false);
-        try {
-            command = commandService.executeCommand(command);
-            CnALink link = command.getLink();
-            Domain dependantDomain = CnATypeMapper
-                    .getDomainFromTypeId(link.getDependant().getTypeId());
-            Domain dependencyDomain = CnATypeMapper
-                    .getDomainFromTypeId(link.getDependency().getTypeId());
-            Set<Domain> relevantDomains = EnumSet.of(dependantDomain, dependencyDomain);
-
-            if (relevantDomains.contains(Domain.BASE_PROTECTION_OLD)
-                    && CnAElementFactory.isModelLoaded()) {
-                CnAElementFactory.getLoadedModel().linkAdded(link);
-            }
-            if (relevantDomains.contains(Domain.ISM) && CnAElementFactory.isIsoModelLoaded()) {
-                CnAElementFactory.getInstance().getISO27kModel().linkAdded(link);
-            }
-            if (relevantDomains.contains(Domain.BASE_PROTECTION)
-                    && CnAElementFactory.isBpModelLoaded()) {
-                CnAElementFactory.getInstance().getBpModel().linkAdded(link);
-            }
-            return link;
-        } catch (CommandException e) {
-            LOGGER.error("Link creation failed", e);
-            return null;
-        }
-    }
-
     public static void createLinks(Set<CnATreeElement> sources, CnATreeElement target,
             String relationId) {
-        for (CnATreeElement source : sources) {
-            Optional.ofNullable(createLink(source, target, relationId))
-                    .ifPresent(target::addLinkUp);
+        List<Link> linkSpec = sources.stream().map(source -> new Link(source, target, relationId))
+                .collect(Collectors.toList());
+        CreateMultipleLinks command = new CreateMultipleLinks(linkSpec, true);
+        try {
+            command = commandService.executeCommand(command);
+
+            List<CnALink> createdLinks = command.getCreatedLinks();
+            createdLinks.forEach(target::addLinkUp);
+
+            fireEvents(createdLinks);
+        } catch (CommandException e) {
+            LOGGER.error("Link creation failed", e);
         }
     }
 
     public static void createLinks(CnATreeElement source, Set<CnATreeElement> targets,
             String relationId) {
-        for (CnATreeElement target : targets) {
-            Optional.ofNullable(createLink(source, target, relationId))
-                    .ifPresent(source::addLinkDown);
+        List<Link> linkSpec = targets.stream().map(target -> new Link(source, target, relationId))
+                .collect(Collectors.toList());
+        CreateMultipleLinks command = new CreateMultipleLinks(linkSpec, true);
+        try {
+            command = commandService.executeCommand(command);
+
+            List<CnALink> createdLinks = command.getCreatedLinks();
+            createdLinks.forEach(source::addLinkDown);
+
+            fireEvents(createdLinks);
+        } catch (CommandException e) {
+            LOGGER.error("Link creation failed", e);
+        }
+    }
+
+    private static void fireEvents(Collection<CnALink> links) {
+        if (links.isEmpty()) {
+            return;
+        }
+        CnALink firstLink = links.iterator().next();
+        // we know that there can only be one domain since cross-domain links
+        // are not possible and this method is only used internally
+        Domain relevantDomain = CnATypeMapper
+                .getDomainFromTypeId(firstLink.getDependant().getTypeId());
+        if (relevantDomain == Domain.BASE_PROTECTION_OLD && CnAElementFactory.isModelLoaded()) {
+            CnAElementFactory.getLoadedModel().linksAdded(links);
+        }
+        if (relevantDomain == Domain.ISM && CnAElementFactory.isIsoModelLoaded()) {
+            CnAElementFactory.getInstance().getISO27kModel().linksAdded(links);
+        }
+        if (relevantDomain == Domain.BASE_PROTECTION && CnAElementFactory.isBpModelLoaded()) {
+            CnAElementFactory.getInstance().getBpModel().linksAdded(links);
         }
     }
 

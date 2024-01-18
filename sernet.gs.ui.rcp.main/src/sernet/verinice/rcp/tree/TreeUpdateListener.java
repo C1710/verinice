@@ -19,6 +19,8 @@
  ******************************************************************************/
 package sernet.verinice.rcp.tree;
 
+import java.util.Collection;
+
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -102,7 +104,7 @@ public class TreeUpdateListener implements IISO27KModelListener, IBSIModelListen
     public void databaseChildRemoved(ChangeLogEntry entry) {
         try {
             if (entry != null && entry.getUuid() != null) {
-                getElementManager().elementRemoved(entry.getUuid());
+                getElementManager().elementRemoved(entry.getDbId());
                 updater.refresh();
             }
         } catch (Exception e) {
@@ -240,8 +242,8 @@ public class TreeUpdateListener implements IISO27KModelListener, IBSIModelListen
      * .ui.rcp.main.common.model.CnALink)
      */
     @Override
-    public void linkAdded(CnALink link) {
-        linkAddedOrRemoved(link);
+    public void linksAdded(Collection<CnALink> links) {
+        links.forEach(this::linkAddedOrRemoved);
     }
 
     /*
@@ -262,7 +264,7 @@ public class TreeUpdateListener implements IISO27KModelListener, IBSIModelListen
             RetrieveInfo ri = RetrieveInfo.getPropertyChildrenInstance().setParent(true);
             requirement = Retriever.retrieveElement(requirement, ri);
             childChanged(requirement);
-            EditorUtil.closeEditorForElement(requirement.getUuid());
+            EditorUtil.closeEditorForElement(requirement);
         } else if (BpThreat.TYPE_ID.equals(link.getDependant().getTypeId())) {
             CnATreeElement targetObject = Retriever.checkRetrieveElement(link.getDependency());
             updater.refresh(targetObject);

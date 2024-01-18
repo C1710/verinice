@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="verinice" uid="sernet.verinice.releng.client" id="sernet.gs.ui.rcp.main.product" application="sernet.gs.ui.rcp.main.application" version="1.26.1.qualifier" useFeatures="true" includeLaunchers="true" autoIncludeRequirements="true">
+<product name="verinice" uid="sernet.verinice.releng.client" id="sernet.gs.ui.rcp.main.product" application="sernet.gs.ui.rcp.main.application" version="1.27.0.qualifier" type="features" includeLaunchers="true" autoIncludeRequirements="true">
 
    <aboutInfo>
       <image path="/sernet.gs.ui.rcp.main/verinice_icons/about_img.png"/>
       <text>
-         SerNet verinice 1.26.1 - Codename &apos;Mar del Plata&apos;
+         SerNet verinice 1.27.0 - Codename &apos;Siargao&apos;
 
 (c) SerNet Service Network GmbH and others
 1996–2023
@@ -82,9 +82,9 @@ VDA und das VDA Logo sind eingetragene Markenzeichen des Verband der Automobilin
    <launcherArgs>
       <programArgs>-data @user.home/verinice/workspace
       </programArgs>
-      <programArgsMac>-vm ../Eclipse/jre/lib/jli/libjli.dylib
+      <programArgsMac>-vm ../Eclipse/jre/lib/libjli.dylib
       </programArgsMac>
-      <vmArgs>-Xms512m -Xmx4g -Dorg.osgi.service.http.port=8800 -Dorg.ops4j.pax.web.listening.addresses=localhost -Dosgi.parentClassloader=ext
+      <vmArgs>--add-opens=java.base/java.lang=ALL-UNNAMED -Xms512m -Xmx4g -Dorg.osgi.service.http.port=8800 -Dorg.ops4j.pax.web.listening.addresses=localhost -Dosgi.parentClassloader=ext
  -Djavax.xml.soap.SOAPFactory=org.apache.axis.soap.SOAPFactoryImpl -Djavax.xml.soap.MessageFactory=org.apache.axis.soap.MessageFactoryImpl -Djavax.xml.soap.SOAPConnectionFactory=org.apache.axis.soap.SOAPConnectionFactoryImpl
       </vmArgs>
       <vmArgsMac>-Djava.awt.headless=true
@@ -108,9 +108,9 @@ VDA und das VDA Logo sind eingetragene Markenzeichen des Verband der Automobilin
    <intro introId="sernet.gs.ui.rcp.main.intro1"/>
 
    <vm>
-      <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</linux>
-      <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</macos>
-      <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11</windows>
+      <linux include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</linux>
+      <macos include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</macos>
+      <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-17</windows>
    </vm>
 
    <license>
@@ -797,7 +797,7 @@ Public License instead of this License.  But first, please read
    </plugins>
 
    <features>
-      <feature id="sernet.verinice.app.feature" version="1.26.1.qualifier"/>
+      <feature id="sernet.verinice.app.feature" version="1.27.0.qualifier"/>
    </features>
 
    <configurations>

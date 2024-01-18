@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
@@ -36,6 +38,8 @@ import org.hibernate.criterion.Restrictions;
 import sernet.gs.service.CollectionUtil;
 import sernet.gs.service.RetrieveInfo;
 import sernet.gs.service.RuntimeCommandException;
+import sernet.hui.common.VeriniceContext;
+import sernet.hui.common.VeriniceContext.State;
 import sernet.verinice.interfaces.IBaseDao;
 import sernet.verinice.interfaces.IDao;
 import sernet.verinice.interfaces.IElementTitleCache;
@@ -200,29 +204,34 @@ public class TreeElementDao<T, ID extends Serializable> extends HibernateDao<T, 
         return mergedElement;
     }
 
-    public T merge(T entity, boolean fireChange, boolean updateIndex) {
+    public Collection<T> mergeAll(Collection<T> entities, boolean fireChange, boolean updateIndex) {
         if (LOG_INHERIT.isDebug()) {
             LOG_INHERIT.debug("merge...");
         }
-
-        T mergedElement = super.merge(entity);
-
-        if (mergedElement instanceof CnATreeElement) {
-            CnATreeElement element = (CnATreeElement) mergedElement;
-            if (updateIndex) {
-                index(element);
+        ArrayList<T> result = new ArrayList<T>(entities.size());
+        Set<CnATreeElement> elementsToIndex = new HashSet<>(entities.size());
+        for (T entity : entities) {
+            T mergedElement = super.merge(entity);
+            result.add(mergedElement);
+            if (mergedElement instanceof CnATreeElement) {
+                CnATreeElement element = (CnATreeElement) mergedElement;
+                if (updateIndex) {
+                    elementsToIndex.add(element);
+                }
+                if (fireChange) {
+                    notifyChangedElement(element);
+                }
             }
-            if (fireChange) {
-                notifyChangedElement(element);
+            if (fireChange && mergedElement instanceof CnALink) {
+                CnALink link = (CnALink) mergedElement;
+                notifyChangedElement(link.getDependency());
             }
         }
 
-        if (fireChange && mergedElement instanceof CnALink) {
-            CnALink link = (CnALink) mergedElement;
-            notifyChangedElement(link.getDependency());
+        if (!elementsToIndex.isEmpty()) {
+            index(elementsToIndex);
         }
-
-        return mergedElement;
+        return result;
     }
 
     protected void index(CnATreeElement element) {
@@ -242,13 +251,9 @@ public class TreeElementDao<T, ID extends Serializable> extends HibernateDao<T, 
             if (getSearchDao() != null) {
                 IJsonBuilder builder = getJsonBuilder();
                 if (builder != null) {
-
-                    Map<String, String> idToJson = new HashMap<>(elements.size());
-                    for (CnATreeElement element : elements) {
-                        if (builder.isIndexableElement(element)) {
-                            idToJson.put(element.getUuid(), builder.getJson(element));
-                        }
-                    }
+                    Map<String, String> idToJson = elements.parallelStream()
+                            .filter(builder::isIndexableElement)
+                            .collect(toJsonMap(CnATreeElement::getUuid, builder::getJson));
                     getSearchDao().updateOrIndex(idToJson);
                 }
             }
@@ -420,6 +425,18 @@ public class TreeElementDao<T, ID extends Serializable> extends HibernateDao<T, 
 
     public void setTitleCache(IElementTitleCache titleCache) {
         this.titleCache = titleCache;
+    }
+
+    public static <T, K, V> Collector<T, Map<K, V>, Map<K, V>> toJsonMap(
+            final Function<? super T, K> keyMapper, final Function<T, V> valueMapper) {
+        State parentState = VeriniceContext.getState();
+        return Collector.of(HashMap::new, (kvMap, t) -> {
+            VeriniceContext.setState(parentState);
+            kvMap.put(keyMapper.apply(t), valueMapper.apply(t));
+        }, (kvMap, kvMap2) -> {
+            kvMap.putAll(kvMap2);
+            return kvMap;
+        }, Function.identity(), Collector.Characteristics.IDENTITY_FINISH);
     }
 
 }

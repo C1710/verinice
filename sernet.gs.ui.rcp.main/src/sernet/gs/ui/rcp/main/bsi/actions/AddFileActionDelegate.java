@@ -38,9 +38,9 @@ import sernet.hui.common.VeriniceContext;
 import sernet.springclient.RightsServiceClient;
 import sernet.verinice.interfaces.ActionRightIDs;
 import sernet.verinice.interfaces.IVeriniceConstants;
-import sernet.verinice.interfaces.RightEnabledUserInteraction;
 import sernet.verinice.model.bsi.Attachment;
 import sernet.verinice.model.common.CnATreeElement;
+import sernet.verinice.rcp.RightEnabledUserInteraction;
 
 public class AddFileActionDelegate implements IObjectActionDelegate, RightEnabledUserInteraction {
 
@@ -84,15 +84,13 @@ public class AddFileActionDelegate implements IObjectActionDelegate, RightEnable
                     attachment.setFilePath(selected);
                     attachment.setFileSize(String.valueOf(file.length()));
 
-                    attachment.addListener(new Attachment.INoteChangedListener() {
-                        public void noteChanged() {
-                            IViewPart page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-                                    .getActivePage().findView(FileView.ID);
-                            if (page != null) {
-                                ((FileView) page).loadFiles();
-                            }
-
+                    attachment.addListener(() -> {
+                        IViewPart page = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+                                .getActivePage().findView(FileView.ID);
+                        if (page != null) {
+                            ((FileView) page).loadFiles();
                         }
+
                     });
 
                     EditorFactory.getInstance().openEditor(attachment);
@@ -112,17 +110,6 @@ public class AddFileActionDelegate implements IObjectActionDelegate, RightEnable
     @Override
     public void selectionChanged(IAction action, ISelection selection) {
         action.setEnabled(checkRights() && isCnATreeElementEditable(selection));
-    }
-
-    /*
-     * @see sernet.verinice.interfaces.RightEnabledUserInteraction#checkRights()
-     */
-    @Override
-    public boolean checkRights() {
-        Activator.inheritVeriniceContextState();
-        RightsServiceClient service = (RightsServiceClient) VeriniceContext
-                .get(VeriniceContext.RIGHTS_SERVICE);
-        return service.isEnabled(getRightID());
     }
 
     /*

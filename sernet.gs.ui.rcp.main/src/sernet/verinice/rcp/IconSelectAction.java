@@ -30,20 +30,20 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import sernet.gs.ui.rcp.main.Activator;
+import sernet.gs.ui.rcp.main.bsi.editors.EditorUtil;
 import sernet.gs.ui.rcp.main.common.model.CnAElementFactory;
 import sernet.hui.common.VeriniceContext;
 import sernet.springclient.RightsServiceClient;
 import sernet.verinice.interfaces.ActionRightIDs;
 import sernet.verinice.interfaces.ICommandService;
-import sernet.verinice.interfaces.RightEnabledUserInteraction;
 import sernet.verinice.iso27k.rcp.JobScheduler;
 import sernet.verinice.iso27k.rcp.Mutex;
 import sernet.verinice.model.common.ChangeLogEntry;
@@ -80,7 +80,7 @@ public class IconSelectAction
     public void run(IAction arg0) {
         try {
             final IconSelectDialog dialog = new IconSelectDialog(shell);
-            if (Dialog.OK == dialog.open() && dialog.isSomethingSelected()) {
+            if (Window.OK == dialog.open() && dialog.isSomethingSelected()) {
                 WorkspaceJob updateIconJob = new WorkspaceJob(Messages.IconSelectAction_0) {
                     @Override
                     public IStatus runInWorkspace(final IProgressMonitor monitor) {
@@ -102,6 +102,7 @@ public class IconSelectAction
                             // notify all views of change:
                             for (CnATreeElement element : updateIcon.getChangedElements()) {
                                 CnAElementFactory.getModel(element).childChanged(element);
+                                EditorUtil.changeEditorImage(element);
                             }
                         } catch (Exception e) {
                             LOG.error("Error while changing icons.", e); //$NON-NLS-1$
@@ -147,17 +148,6 @@ public class IconSelectAction
     @Override
     public void dispose() {
         // nothing to do here
-    }
-
-    /*
-     * @see sernet.verinice.interfaces.RightEnabledUserInteraction#checkRights()
-     */
-    @Override
-    public boolean checkRights() {
-        Activator.inheritVeriniceContextState();
-        RightsServiceClient service = (RightsServiceClient) VeriniceContext
-                .get(VeriniceContext.RIGHTS_SERVICE);
-        return service.isEnabled(getRightID());
     }
 
     /*

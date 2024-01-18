@@ -80,6 +80,7 @@ import sernet.gs.ui.rcp.main.bsi.views.RelationView;
 import sernet.gs.ui.rcp.main.bsi.views.TodoView;
 import sernet.gs.ui.rcp.main.preferences.PreferenceConstants;
 import sernet.gs.ui.rcp.main.preferences.ShowPreferencesAction;
+import sernet.verinice.bcm.ui.BiaView;
 import sernet.verinice.bp.rcp.BaseProtectionView;
 import sernet.verinice.bp.rcp.converter.ItNetworkConverterAction;
 import sernet.verinice.bpm.rcp.OpenTaskViewAction;
@@ -203,6 +204,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     private OpenViewAction openBpViewAction;
 
     private OpenViewAction openCatalogViewAction;
+
+    private OpenViewAction openBiaViewAction;
 
     public ApplicationActionBarAdvisor(IActionBarConfigurer configurer) {
         super(configurer);
@@ -329,6 +332,10 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
                 Messages.ApplicationActionBarAdvisor_CatalogView, CatalogView.ID,
                 ImageCache.VIEW_CATALOG, ActionRightIDs.CATALOGVIEW);
 
+        this.openBiaViewAction = new OpenViewAction(window,
+                Messages.ApplicationActionBarAdvisor_Bia_View, BiaView.ID, "Refresh.png", //$NON-NLS-1$
+                ActionRightIDs.BIAVIEW);
+
         Stream.of(this.exitAction, this.copyAction, this.pasteAction, this.aboutAction,
                 this.newWindowAction, this.saveAction, this.saveAsAction, this.closeAction,
                 this.closeAllAction, this.closeOthersAction, this.openBSIBrowserAction,
@@ -343,7 +350,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
                 gsmbausteinZuordnungAction, this.openDocumentViewAction, this.introAction,
                 this.openGroupViewAction, this.openReportdepositViewAction,
                 this.openSearchViewAction, this.openGSToolMappingViewAction, this.openBpViewAction,
-                this.openCatalogViewAction).forEach(this::register);
+                this.openCatalogViewAction, this.openBiaViewAction).forEach(this::register);
 
         Optional.ofNullable(window.getActivePage()).map(IWorkbenchPage::getPerspective)
                 .ifPresent(this::enableOrDisableActionsForPerspective);
@@ -476,6 +483,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         // marker for including views from samt-plugin
 
         // VDA - done by samt-plugin
+        viewsMenu.add(new Separator());
+
+        viewsMenu.add(this.openBiaViewAction);
         viewsMenu.add(new Separator());
 
         // global
@@ -619,7 +629,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         for (IPerspectiveDescriptor perspective : PlatformUI.getWorkbench().getPerspectiveRegistry()
                 .getPerspectives()) {
             String perspectiveId = perspective.getId();
-            if (perspectiveId.startsWith("<") && perspectiveId.endsWith(">")) {
+            if (perspectiveId.startsWith("<") && perspectiveId.endsWith(">")) { //$NON-NLS-1$
                 PlatformUI.getWorkbench().getPerspectiveRegistry().deletePerspective(perspective);
             }
         }

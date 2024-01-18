@@ -20,7 +20,10 @@
 package sernet.verinice.service.commands;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -36,59 +39,82 @@ import sernet.verinice.model.common.Link;
  */
 public class CreateMultipleLinks extends GenericCommand {
 
+    private static final long serialVersionUID = 6532903972493877065L;
+
     private static final Logger log = Logger.getLogger(CreateMultipleLinks.class);
 
     private List<Link> linkList;
     private transient IBaseDao<CnATreeElement, Serializable> dao;
     private transient IBaseDao<CnALink, Serializable> linkDao;
+    private transient Map<Integer, CnATreeElement> dependantsById;
+    private transient Map<Integer, CnATreeElement> dependenciesById;
     private boolean retrieve;
-    
+    private List<CnALink> createdLinks;
+
     public CreateMultipleLinks(List<Link> linkList) {
         super();
         this.linkList = linkList;
         this.retrieve = false;
     }
-    
+
     public CreateMultipleLinks(List<Link> linkList, boolean retrieve) {
         super();
         this.linkList = linkList;
         this.retrieve = retrieve;
     }
 
-    /* (non-Javadoc)
+    /*
      * @see sernet.verinice.interfaces.ICommand#execute()
      */
     @Override
     public void execute() {
+        dependantsById = new HashMap<>(linkList.size());
+        dependenciesById = new HashMap<>(linkList.size());
         for (Link link : linkList) {
-            createLink(link);
+            CnATreeElement dependant = link.getFrom();
+            CnATreeElement dependency = link.getTo();
+            Integer dependantId = dependant.getDbId();
+            Integer dependencyId = dependency.getDbId();
+            if (!dependantsById.containsKey(dependantId)) {
+                if (retrieve) {
+                    RetrieveInfo ri = RetrieveInfo.getPropertyInstance();
+                    ri.setLinksDown(true);
+                    dependant = getDao().retrieve(dependantId, ri);
+                }
+                dependantsById.put(dependantId, dependant);
+
+            }
+            if (!dependenciesById.containsKey(dependencyId)) {
+                if (retrieve) {
+                    RetrieveInfo ri = RetrieveInfo.getPropertyInstance();
+                    ri.setLinksUp(true);
+                    dependency = getDao().retrieve(dependencyId, ri);
+                }
+                dependenciesById.put(dependencyId, dependency);
+            }
+        }
+
+        createdLinks = new ArrayList<>(linkList.size());
+        for (Link link : linkList) {
+            createdLinks.add(createLink(link));
         }
         linkList = null;
     }
-    
-    private void createLink(Link link) {
+
+    private CnALink createLink(Link link) {
         try {
-            CnATreeElement dependency = link.getTo();            
-            if(retrieve) {
-                RetrieveInfo ri = RetrieveInfo.getPropertyInstance();
-                ri.setLinksUp(true);      
-                dependency = getDao().findByUuid(dependency.getUuid(), ri);  
-            }
-            
-            CnATreeElement dependant = link.getFrom();
-            if(retrieve) {
-                RetrieveInfo ri = RetrieveInfo.getPropertyInstance();
-                ri.setLinksDown(true);  
-                dependant = getDao().findByUuid(dependant.getUuid(), ri);
-            }
+            CnATreeElement dependency = dependenciesById.get(link.getTo().getDbId());
+            CnATreeElement dependant = dependantsById.get(link.getFrom().getDbId());
 
             if (log.isDebugEnabled()) {
-                log.debug("Creating link from " + dependency.getTypeId() + " to " + dependant.getTypeId());
+                log.debug("Creating link from " + dependency.getTypeId() + " to "
+                        + dependant.getTypeId());
             }
-            
-            CnALink cnaLink = new CnALink(dependant, dependency, link.getRelationId(), link.getComment());
 
-            getLinkDao().merge(cnaLink, true);
+            CnALink cnaLink = new CnALink(dependant, dependency, link.getRelationId(),
+                    link.getComment());
+
+            return getLinkDao().merge(cnaLink, true);
         } catch (RuntimeException e) {
             log.error("RuntimeException while creating link.", e);
             throw e;
@@ -97,7 +123,7 @@ public class CreateMultipleLinks extends GenericCommand {
             throw new RuntimeException("Error while creating link", e);
         }
     }
-    
+
     public boolean isRetrieve() {
         return retrieve;
     }
@@ -108,11 +134,11 @@ public class CreateMultipleLinks extends GenericCommand {
 
     private IBaseDao<CnATreeElement, Serializable> getDao() {
         if (dao == null) {
-            dao = (IBaseDao<CnATreeElement, Serializable>) getDaoFactory().getDAO(CnATreeElement.class);
+            dao = getDaoFactory().getDAO(CnATreeElement.class);
         }
         return dao;
     }
-    
+
     private IBaseDao<CnALink, Serializable> getLinkDao() {
         if (linkDao == null) {
             linkDao = (IBaseDao<CnALink, Serializable>) getDaoFactory().getDAO(CnALink.TYPE_ID);
@@ -120,4 +146,7 @@ public class CreateMultipleLinks extends GenericCommand {
         return linkDao;
     }
 
+    public List<CnALink> getCreatedLinks() {
+        return createdLinks;
+    }
 }

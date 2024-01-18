@@ -43,7 +43,6 @@ import sernet.springclient.RightsServiceClient;
 import sernet.verinice.interfaces.ActionRightIDs;
 import sernet.verinice.interfaces.CnATreeElementBuildException;
 import sernet.verinice.interfaces.CommandException;
-import sernet.verinice.interfaces.RightEnabledUserInteraction;
 import sernet.verinice.model.common.CnATreeElement;
 import sernet.verinice.model.iso27k.Asset;
 import sernet.verinice.model.iso27k.Audit;
@@ -52,6 +51,7 @@ import sernet.verinice.model.iso27k.ControlGroup;
 import sernet.verinice.model.iso27k.Group;
 import sernet.verinice.model.iso27k.IISO27kGroup;
 import sernet.verinice.rcp.AddGroupMessageHelper;
+import sernet.verinice.rcp.RightEnabledUserInteraction;
 
 /**
  * @author Daniel Murygin <dm[at]sernet[dot]de>
@@ -128,8 +128,8 @@ public class AddGroup extends Action implements IObjectActionDelegate, RightEnab
         }
         boolean inheritIcon = Activator.getDefault().getPreferenceStore()
                 .getBoolean(PreferenceConstants.INHERIT_SPECIAL_GROUP_ICON);
-        CnATreeElement newElement = CnAElementFactory.getInstance().saveNew((CnATreeElement) parent,
-                currentType, null, inheritIcon);
+        CnATreeElement newElement = CnAElementFactory.getInstance().saveNew(parent, currentType,
+                null, inheritIcon);
         Optional.ofNullable(newElement).ifPresent(EditorFactory.getInstance()::openEditor);
     }
 
@@ -175,16 +175,6 @@ public class AddGroup extends Action implements IObjectActionDelegate, RightEnab
                 action.setEnabled(allowed && enabled);
             }
         }
-    }
-
-    /*
-     * @see sernet.verinice.interfaces.RightEnabledUserInteraction#checkRights()
-     */
-    @Override
-    public boolean checkRights() {
-        RightsServiceClient service = (RightsServiceClient) VeriniceContext
-                .get(VeriniceContext.RIGHTS_SERVICE);
-        return service.isEnabled(getRightID());
     }
 
     /*

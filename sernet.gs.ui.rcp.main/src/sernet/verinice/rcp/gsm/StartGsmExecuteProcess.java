@@ -45,11 +45,11 @@ import sernet.hui.common.VeriniceContext;
 import sernet.springclient.RightsServiceClient;
 import sernet.verinice.bpm.rcp.TaskChangeRegistry;
 import sernet.verinice.interfaces.ActionRightIDs;
-import sernet.verinice.interfaces.RightEnabledUserInteraction;
 import sernet.verinice.interfaces.bpm.IGsmValidationResult;
 import sernet.verinice.interfaces.bpm.IProcessStartInformation;
 import sernet.verinice.model.iso27k.Organization;
 import sernet.verinice.rcp.InfoDialogWithShowToggle;
+import sernet.verinice.rcp.RightEnabledUserInteraction;
 
 /**
  * RCP Action to start jBPM process "gsm-ism-execute" defined in
@@ -67,8 +67,6 @@ public class StartGsmExecuteProcess implements IObjectActionDelegate, RightEnabl
 
     private int numberOfProcess = 0;
 
-    private Boolean isActive = null;
-
     private String validationMessage = Messages.StartGsmExecuteProcess_10;
 
     /*
@@ -78,6 +76,7 @@ public class StartGsmExecuteProcess implements IObjectActionDelegate, RightEnabl
      */
     @Override
     public void setActivePart(IAction action, IWorkbenchPart targetPart) {
+        // no-op
     }
 
     /*
@@ -235,16 +234,6 @@ public class StartGsmExecuteProcess implements IObjectActionDelegate, RightEnabl
         } else {
             action.setEnabled(false);
         }
-    }
-
-    /*
-     * @see sernet.verinice.interfaces.RightEnabledUserInteraction#checkRights()
-     */
-    @Override
-    public boolean checkRights() {
-        RightsServiceClient service = (RightsServiceClient) VeriniceContext
-                .get(VeriniceContext.RIGHTS_SERVICE);
-        return service.isEnabled(getRightID());
     }
 
     /*

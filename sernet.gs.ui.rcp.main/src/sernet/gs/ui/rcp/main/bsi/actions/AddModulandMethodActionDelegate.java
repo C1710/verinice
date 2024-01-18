@@ -6,16 +6,17 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IObjectActionDelegate;
 
 import sernet.gs.ui.rcp.main.common.model.CnAElementHome;
-import sernet.hui.common.VeriniceContext;
-import sernet.springclient.RightsServiceClient;
 import sernet.verinice.interfaces.ActionRightIDs;
-import sernet.verinice.interfaces.RightEnabledUserInteraction;
 import sernet.verinice.model.common.CnATreeElement;
+import sernet.verinice.rcp.RightEnabledUserInteraction;
 
-public abstract class  AddModulandMethodActionDelegate implements IObjectActionDelegate, RightEnabledUserInteraction {
+public abstract class AddModulandMethodActionDelegate
+        implements IObjectActionDelegate, RightEnabledUserInteraction {
 
-    /* (non-Javadoc)
-     * @see org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.IAction, org.eclipse.jface.viewers.ISelection)
+    /*
+     * @see
+     * org.eclipse.ui.IActionDelegate#selectionChanged(org.eclipse.jface.action.
+     * IAction, org.eclipse.jface.viewers.ISelection)
      */
     public final void selectionChanged(IAction action, ISelection selection) {
         action.setEnabled(checkRights());
@@ -31,20 +32,9 @@ public abstract class  AddModulandMethodActionDelegate implements IObjectActionD
             }
         }
     }
-    
+
     @Override
-    public String getRightID(){
+    public String getRightID() {
         return ActionRightIDs.ADDOWNMODUL;
     }
-      
-    
-    /* (non-Javadoc)
-     * @see sernet.verinice.interfaces.RightEnabledUserInteraction#checkRights()
-     */
-    @Override
-    public boolean checkRights() {
-        RightsServiceClient service = (RightsServiceClient)VeriniceContext.get(VeriniceContext.RIGHTS_SERVICE);
-        return service.isEnabled(getRightID());
-    }
-    
 }

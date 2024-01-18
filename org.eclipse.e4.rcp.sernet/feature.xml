@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.e4.rcp.sernet"
       label="%featureName"
-      version="1.26.1.qualifier"
+      version="1.27.0.qualifier"
       provider-name="%providerName">
 
    <description>
@@ -258,14 +258,14 @@ Library.
          unpack="false"/>
 
    <plugin
-         id="javax.inject"
+         id="jakarta.inject.jakarta.inject-api"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="javax.annotation"
+         id="jakarta.annotation-api"
          download-size="0"
          install-size="0"
          version="0.0.0"

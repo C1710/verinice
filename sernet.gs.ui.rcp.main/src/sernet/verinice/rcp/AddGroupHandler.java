@@ -82,8 +82,8 @@ public abstract class AddGroupHandler extends RightsEnabledHandler {
 
             boolean inheritIcon = Activator.getDefault().getPreferenceStore()
                     .getBoolean(PreferenceConstants.INHERIT_SPECIAL_GROUP_ICON);
-            newGroup = CnAElementFactory.getInstance().saveNew((CnATreeElement) parent, groupTypeId,
-                    null, inheritIcon);
+            newGroup = CnAElementFactory.getInstance().saveNew(parent, groupTypeId, null,
+                    inheritIcon);
         }
         if (newGroup != null) {
             EditorFactory.getInstance().openEditor(newGroup);
@@ -107,16 +107,6 @@ public abstract class AddGroupHandler extends RightsEnabledHandler {
             element = (CnATreeElement) sel;
         }
         return element;
-    }
-
-    /*
-     * @see sernet.verinice.interfaces.RightEnabledUserInteraction#checkRights()
-     */
-    @Override
-    public boolean checkRights() {
-        RightsServiceClient service = (RightsServiceClient) VeriniceContext
-                .get(VeriniceContext.RIGHTS_SERVICE);
-        return service.isEnabled(getRightID());
     }
 
 }

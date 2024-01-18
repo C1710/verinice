@@ -41,10 +41,10 @@ import sernet.gs.ui.rcp.main.service.ServiceFactory;
 import sernet.hui.common.VeriniceContext;
 import sernet.springclient.RightsServiceClient;
 import sernet.verinice.interfaces.ActionRightIDs;
-import sernet.verinice.interfaces.RightEnabledUserInteraction;
 import sernet.verinice.interfaces.bpm.IProcessStartInformation;
 import sernet.verinice.model.iso27k.Audit;
 import sernet.verinice.rcp.InfoDialogWithShowToggle;
+import sernet.verinice.rcp.RightEnabledUserInteraction;
 
 /**
  * @author Daniel Murygin <dm[at]sernet[dot]de>
@@ -67,8 +67,7 @@ public class StartIsaProcess implements IObjectActionDelegate, RightEnabledUserI
      */
     @Override
     public void setActivePart(IAction action, IWorkbenchPart targetPart) {
-        // TODO Auto-generated method stub
-
+        // no-op
     }
 
     /*
@@ -128,16 +127,6 @@ public class StartIsaProcess implements IObjectActionDelegate, RightEnabledUserI
             action.setEnabled(false);
         }
 
-    }
-
-    /*
-     * @see sernet.verinice.interfaces.RightEnabledUserInteraction#checkRights()
-     */
-    @Override
-    public boolean checkRights() {
-        RightsServiceClient service = (RightsServiceClient) VeriniceContext
-                .get(VeriniceContext.RIGHTS_SERVICE);
-        return service.isEnabled(getRightID());
     }
 
     /*

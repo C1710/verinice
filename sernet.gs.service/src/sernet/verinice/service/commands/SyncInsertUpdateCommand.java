@@ -141,6 +141,8 @@ public class SyncInsertUpdateCommand extends GenericCommand implements IAuthAwar
 
     private ImportReferenceTypes importReferenceTypes;
 
+    private transient Set<CnATreeElement> elementsToMergeWithIndexUpdate;
+
     public SyncInsertUpdateCommand(String sourceId, SyncData syncData, SyncMapping syncMapping,
             String userName, SyncParameter parameter, List<String> errorList) {
         super();
@@ -173,6 +175,7 @@ public class SyncInsertUpdateCommand extends GenericCommand implements IAuthAwar
         importReferenceTypes = new ImportReferenceTypes(iBaseDao, getCommandService(),
                 idElementMap);
 
+        elementsToMergeWithIndexUpdate = new HashSet<>();
         try {
             if (logrt.isDebugEnabled()) {
                 globalStart = System.currentTimeMillis();
@@ -201,6 +204,7 @@ public class SyncInsertUpdateCommand extends GenericCommand implements IAuthAwar
                 }
             }
             List<SyncObject> soList = syncData.getSyncObject();
+            elementSet = new HashSet<>(soList.size());
             Set<String> idsOfObjectsWithLinks = syncData.getSyncLink().stream()
                     .flatMap(l -> Stream.of(l.getDependant(), l.getDependency()))
                     .collect(Collectors.toUnmodifiableSet());
@@ -208,7 +212,10 @@ public class SyncInsertUpdateCommand extends GenericCommand implements IAuthAwar
             for (SyncObject so : soList) {
                 importObject(null, so, idsOfObjectsWithLinks);
             } // for <syncObject>
-
+            if (!elementsToMergeWithIndexUpdate.isEmpty()) {
+                IBaseDao<CnATreeElement, Serializable> dao = getDao(CnATreeElement.class);
+                dao.mergeAll(elementsToMergeWithIndexUpdate, false, true);
+            }
             importReferenceTypes.replaceExternalIdsWithDbIds();
 
             if (logrt.isDebugEnabled()) {
@@ -420,7 +427,10 @@ public class SyncInsertUpdateCommand extends GenericCommand implements IAuthAwar
             }
             // do not update the index for existing but unchanged elements
             boolean updateIndex = !(updatingExistingElement && !propertyValueChanged);
-            elementInDB = dao.merge(elementInDB, false, updateIndex);
+            elementInDB = dao.merge(elementInDB, false, false);
+            if (updateIndex) {
+                elementsToMergeWithIndexUpdate.add(elementInDB);
+            }
             parent.addChild(elementInDB);
             elementInDB.setParentAndScope(parent);
 
@@ -464,10 +474,10 @@ public class SyncInsertUpdateCommand extends GenericCommand implements IAuthAwar
      * RuntimeException in case of unvalid data
      */
     private boolean validateInformation(boolean licenseManagement, SyncAttribute sa) {
-        boolean licenseListCardinality = checkEqualCardinalityOfLists(sa);
         if (sa.getLicenseContentId().isEmpty() && sa.getLimitedLicense().isEmpty()) {
             return true;
         }
+        boolean licenseListCardinality = checkEqualCardinalityOfLists(sa);
         boolean licenseManagementValid = licenseManagement && licenseListCardinality;
 
         if (licenseManagement && !licenseListCardinality) {
@@ -1022,9 +1032,6 @@ public class SyncInsertUpdateCommand extends GenericCommand implements IAuthAwar
     }
 
     protected void addElement(CnATreeElement element) {
-        if (elementSet == null) {
-            elementSet = new HashSet<>();
-        }
         elementSet.add(element);
     }
 

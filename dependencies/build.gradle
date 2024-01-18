@@ -1,12 +1,9 @@
 plugins {
-  id "org.standardout.bnd-platform" version "1.7.0"
+  id "org.standardout.bnd-platform" version "3.0.0"
 }
 
 repositories {
-	jcenter()
-	maven {
-		url 'http://conjars.org/repo/'
-	}
+	mavenCentral()
 }
 
 platform {
@@ -24,34 +21,10 @@ platform {
 	determineImportVersions = true
     importVersionStrategy = MINIMUM
 
-	feature(id: 'org.hibernate', name: 'hibernate-core', version: '3.6.11') {
-		plugin('org.hibernate:hibernate-core:3.6.10.Final') {
-			bnd {
-				optionalImport 'net.sf.cglib.beans'
-				optionalImport 'net.sf.cglib.core'
-				optionalImport 'net.sf.cglib.proxy'
-				optionalImport 'net.sf.cglib.reflect'
-				optionalImport 'net.sf.cglib.transform'
-				optionalImport 'net.sf.cglib.transform.impl'
-
-				instruction 'Eclipse-BuddyPolicy', 'registered'
-			}
-		}
-		plugin('dom4j:dom4j:1.6.1') {
-			bnd {
-				optionalImport 'com.sun.msv.datatype'
-				optionalImport 'com.sun.msv.datatype.xsd'
-				optionalImport 'org.gjt.xpp'
-				optionalImport 'org.jaxen'
-				optionalImport 'org.jaxen.dom4j'
-				optionalImport 'org.jaxen.pattern'
-				optionalImport 'org.jaxen.saxpath'
-				optionalImport 'org.relaxng.datatype'
-				optionalImport 'org.xmlpull.v1'
-			}
-		}
-	}
-
+    feature(id: 'antlr', name: 'antlr', version: '2.7.7') {
+        plugin('antlr:antlr:2.7.7')
+    }
+    
 	feature(id: 'jfree', name: 'jfreechart-swt', version: '1.0.0') {
 		plugin('jfree:jfreechart-swt:1.0.9') {
 			exclude group: 'org.eclipse.swt', module: 'org.eclipse.swt.cocoa.macosx.x86_64'
@@ -83,7 +56,7 @@ platform {
         }
 	}
 
-	feature(id: 'spring', name: 'spring', version: '0.9.0') {
+	feature(id: 'spring', name: 'spring', version: '0.11.0') {
 		plugin fileTree("${project.projectDir}/spring/") {
    			include '**/*.jar'
    			exclude '**/*sources.jar'
@@ -105,6 +78,12 @@ platform {
         plugin fileTree ("${project.projectDir}/spring/spring-core-verinice-patch.jar"), {
             bnd {
                 version =  '2.5.6.SEC03-' + new Date().format('yyyyMMddHHmmss')
+            }
+        }
+        //we backported https://hibernate.atlassian.net/browse/HHH-3860 into this jar
+        plugin fileTree ("${project.projectDir}/spring/com.springsource.org.hibernate_3.2.6.ga.jar"), {
+            bnd {
+                version =  '3.2.6.' + new Date().format('yyyyMMddHHmmss')
             }
         }
 

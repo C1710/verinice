@@ -33,11 +33,11 @@ import sernet.hui.common.VeriniceContext;
 import sernet.springclient.RightsServiceClient;
 import sernet.verinice.interfaces.ActionRightIDs;
 import sernet.verinice.interfaces.CommandException;
-import sernet.verinice.interfaces.RightEnabledUserInteraction;
 import sernet.verinice.iso27k.rcp.ISMView;
 import sernet.verinice.iso27k.rcp.action.DropPerformer;
 import sernet.verinice.model.common.CnATreeElement;
 import sernet.verinice.model.search.VeriniceSearchResultRow;
+import sernet.verinice.rcp.RightEnabledUserInteraction;
 import sernet.verinice.service.commands.LoadElementByUuid;
 
 /**
@@ -57,18 +57,6 @@ public class SearchViewDropListener extends ViewerDropAdapter
 
     public SearchViewDropListener(TableViewer viewer) {
         super(viewer);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see sernet.verinice.interfaces.RightEnabledUserInteraction#checkRights()
-     */
-    @Override
-    public boolean checkRights() {
-        RightsServiceClient service = (RightsServiceClient) VeriniceContext
-                .get(VeriniceContext.RIGHTS_SERVICE);
-        return service.isEnabled(getRightID());
     }
 
     /*

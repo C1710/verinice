@@ -124,10 +124,11 @@ public class ElementManager {
             } else if (ChildrenExist.isAlwaysChildless(parentElement)) {
                 hasChildren = false;
             } else {
-                String uuid = (parentElement != null) ? parentElement.getUuid() : "unknown";
+                String dbId = (parentElement != null) ? parentElement.getDbId().toString()
+                        : "unknown";
                 LOG.warn(
-                        "Can't determine if element has children (returning true). Element not found in cache, uuid: "
-                                + uuid);
+                        "Can't determine if element has children (returning true). Element not found in cache, dbId: "
+                                + dbId);
             }
             return hasChildren;
         } catch (RuntimeException re) {
@@ -147,7 +148,7 @@ public class ElementManager {
      */
     public void elementChanged(CnATreeElement element) {
         try {
-            element = replaceEntityInCache(element);
+            element = replaceDataInCache(element);
             updateParentInCache(element);
         } catch (RuntimeException re) {
             LOG.error("RuntimeException in elementChanged", re);
@@ -190,7 +191,7 @@ public class ElementManager {
     public void elementRemoved(CnATreeElement element) {
         cache.remove(element);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Element removed from cache, uuid: " + element.getUuid());
+            LOG.debug("Element removed from cache, dbId: " + element.getDbId());
         }
     }
 
@@ -202,10 +203,10 @@ public class ElementManager {
      * @param element
      *            Uuid of removed element
      */
-    public void elementRemoved(String uuid) {
-        cache.remove(uuid);
+    public void elementRemoved(Integer dbId) {
+        cache.remove(dbId);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Element removed from cache, uuid: " + uuid);
+            LOG.debug("Element removed from cache, dbId: " + dbId);
         }
     }
 
@@ -225,7 +226,7 @@ public class ElementManager {
 
     public List<IParameter> getParameterList() {
         if (paramerterList == null) {
-            paramerterList = new ArrayList<IParameter>();
+            paramerterList = new ArrayList<>();
         }
         return paramerterList;
     }
@@ -246,19 +247,20 @@ public class ElementManager {
     }
 
     /**
-     * Replaces the entity of an element in cache. If element is not found in
+     * Replaces the data of an element in cache. If element is not found in
      * cache element is not added to cache.
      * 
      * @param element
      *            A CnATreeElement
-     * @return The element from cache with replaced entity or unchanged element
-     *         if element was not found in cache.
+     * @return The element from cache with replaced data or unchanged element if
+     *         element was not found in cache.
      */
-    private CnATreeElement replaceEntityInCache(CnATreeElement element) {
+    private CnATreeElement replaceDataInCache(CnATreeElement element) {
         CacheObject cachedObject = cache.getCachedObject(element);
         if (cachedObject != null) {
             CnATreeElement cachedElement = cachedObject.getElement();
             cachedElement.setEntity(element.getEntity());
+            cachedElement.setIconPath(element.getIconPath());
             cache.addObject(new CacheObject(cachedElement,
                     cachedObject.isChildrenPropertiesLoaded(), cachedObject.getHasChildren()));
             return cachedElement;
@@ -325,11 +327,11 @@ public class ElementManager {
             // no element found in cache, load properties AND children
             ri.setProperties(true);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Loading parent and children from database, parent uuid: "
-                        + element.getUuid());
+                LOG.debug("Loading parent and children from database, parent dbId: "
+                        + element.getDbId());
             }
         } else if (LOG.isDebugEnabled()) {
-            LOG.debug("Loading children from database, parent uuid: " + element.getUuid());
+            LOG.debug("Loading children from database, parent dbId: " + element.getDbId());
         }
         LoadTreeItem command = new LoadTreeItem(element.getDbId(), ri,
                 ElementFilter.convertToMap(getParameterList()));
@@ -364,11 +366,11 @@ public class ElementManager {
     }
 
     private static ChildrenExist checkChildren(CnATreeElement element) {
-        ChildrenExist hasChildren = ChildrenExist.UNKNOWN;
-        if (element.getChildren().size() > 0) {
-            hasChildren = ChildrenExist.YES;
-        } else {
+        ChildrenExist hasChildren;
+        if (element.getChildren().isEmpty()) {
             hasChildren = ChildrenExist.NO;
+        } else {
+            hasChildren = ChildrenExist.YES;
         }
         return hasChildren;
     }
