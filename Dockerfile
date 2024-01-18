@@ -1,5 +1,4 @@
 FROM eclipse-temurin:17 as build
-COPY . /verinice
 WORKDIR /verinice
 
 RUN apt-get update && apt-get install -y \
@@ -33,8 +32,13 @@ RUN mkdir -p /verinice/sernet.verinice.extraresources.jre_windows_64 \
 ENV JAVA_OPTS "-Djdk.util.zip.disableZip64ExtraFieldValidation"
 ENV JAVA_TOOL_OPTIONS "-Djdk.util.zip.disableZip64ExtraFieldValidation"
 
+COPY . /verinice
+
 RUN ./mvnw -Djdk.util.zip.disableZip64ExtraFieldValidation -Dtycho.disableP2Mirrors=true clean verify
 
 FROM scratch as verinice
-COPY --from=build /verinice/sernet.verinice.releng.client.product/target/products/*.zip /verinice/client/
-COPY --from=build /verinice/sernet.verinice.releng.server.product/target*.war /verinice/server/
+
+ENV output=/verinice
+
+COPY --from=build /verinice/sernet.verinice.releng.client.product/target/products/*.zip ${OUTPUT_DIRECTORY}/client/
+COPY --from=build /verinice/sernet.verinice.releng.server.product/target/* ${OUTPUT_DIRECTORY}/server/
